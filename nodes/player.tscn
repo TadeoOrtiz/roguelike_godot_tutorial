@@ -1,21 +1,117 @@
-[gd_scene load_steps=4 format=3 uid="uid://qa10elaulhf3"]
+[gd_scene load_steps=15 format=3 uid="uid://qa10elaulhf3"]
 
-[ext_resource type="Texture2D" uid="uid://d3wihplp7cs15" path="res://characters/wizzard_m.png" id="1_11uud"]
-[ext_resource type="Script" path="res://nodes/player.gd" id="1_sx2sa"]
+[ext_resource type="Script" path="res://scripts/state/state_machine.gd" id="1_qoj8e"]
+[ext_resource type="Script" path="res://nodes/player_idle.gd" id="2_syaos"]
+[ext_resource type="Script" path="res://nodes/player_walk.gd" id="3_p4kk3"]
+[ext_resource type="Script" path="res://scripts/components/input_component.gd" id="4_34nnj"]
+[ext_resource type="Script" path="res://nodes/player_idle_attack.gd" id="4_eg8vr"]
+[ext_resource type="Script" path="res://nodes/player_move_attack.gd" id="4_htth2"]
+[ext_resource type="Script" path="res://scripts/components/velocity_component.gd" id="4_iccf0"]
+[ext_resource type="Texture2D" uid="uid://bjpacsypovbp2" path="res://characters/elf_m.png" id="6_aau1i"]
+[ext_resource type="Script" path="res://scripts/components/health_component.gd" id="7_w3mjk"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_wpxtu"]
 radius = 5.0
 height = 18.0
 
+[sub_resource type="Animation" id="Animation_w21k3"]
+resource_name = "Idle"
+length = 0.40001
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3]
+}
+
+[sub_resource type="Animation" id="Animation_bfdyb"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+
+[sub_resource type="Animation" id="Animation_oxcil"]
+resource_name = "Walk"
+length = 0.40001
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [5, 6, 7, 8]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_8nugq"]
+_data = {
+"Idle": SubResource("Animation_w21k3"),
+"RESET": SubResource("Animation_bfdyb"),
+"Walk": SubResource("Animation_oxcil")
+}
+
 [node name="Player" type="CharacterBody2D"]
-script = ExtResource("1_sx2sa")
+
+[node name="StateMachine" type="Node" parent="." node_paths=PackedStringArray("inital_state", "animation_player", "target")]
+script = ExtResource("1_qoj8e")
+inital_state = NodePath("Idle")
+animation_player = NodePath("../AnimationPlayer")
+target = NodePath("..")
+
+[node name="Idle" type="Node" parent="StateMachine"]
+script = ExtResource("2_syaos")
+
+[node name="Walk" type="Node" parent="StateMachine"]
+script = ExtResource("3_p4kk3")
+
+[node name="MoveAttack" type="Node" parent="StateMachine"]
+script = ExtResource("4_htth2")
+
+[node name="IdleAttack" type="Node" parent="StateMachine"]
+script = ExtResource("4_eg8vr")
 
 [node name="Sprite" type="Sprite2D" parent="."]
 position = Vector2(-1, -16)
-texture = ExtResource("1_11uud")
+texture = ExtResource("6_aau1i")
 hframes = 5
 vframes = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, -9)
 shape = SubResource("CapsuleShape2D_wpxtu")
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("7_w3mjk")
+MAX_HEALTH = 50
+
+[node name="VelocityComponent" type="Node" parent="."]
+script = ExtResource("4_iccf0")
+speed = 100
+
+[node name="InputComponent" type="Node" parent="."]
+script = ExtResource("4_34nnj")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_8nugq")
+}
